@@ -1,1 +1,39 @@
-# Write Kubernetes Deployment Script
+apiVersion: apps/v1
+kind: Deployment  #Create Kubernetes deployment that restarts automatically if it crashes
+metadata:
+  name: book-app #name of deployment
+spec:
+  replicas: 1 #Only keep one replica of the microservice running.
+  selector:
+    matchLabels:
+      app: book-app #Name that connects the deployment, pod and service.
+  template:
+    metadata:
+      labels:
+        app: book-app
+    spec:
+      containers: 
+      - name: book-app      #Container name
+        image: book-app:1   #Use this image to create the app
+        imagePullPolicy: Never  #Since image is deployed locally we dont need to pull an image from a container registry
+        ports:
+        - containerPort: 8081
+        env:                #Environment variables for port and database url
+        - name: PORT
+          value: "8081"
+        - name: DATABASE_URL
+          value: "postgresql://sit722_6_2_vish_user:wBDCot8ZCq6oJxPK4AZkWegjjz7gCfqx@dpg-cr9cmol6l47c73ckri10-a.singapore-postgres.render.com/sit722_6_2_vish"
+---
+apiVersion: v1         #Create kubernetes service that creates dns record and exposes microservice to HTTP requests     
+kind: Service
+metadata:
+  name: book-app
+spec:
+  selector:
+    app: book-app
+  type: NodePort    #Exposes the microservice on a port locally
+  ports:
+    - protocol: TCP
+      port: 8081
+      targetPort: 8081
+      nodePort: 30000   #Maps port 8081 to port 30000 on the host computer.
